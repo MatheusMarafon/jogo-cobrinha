@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Cobrinha</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            max-width: 100%;
+        }
+
+        h1 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: #ffd1dc;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .game-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: inline-block;
+        }
+
+        #gameCanvas {
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            background: #f8f9fa;
+            display: block;
+            touch-action: none;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            gap: 20px;
+        }
+
+        .score-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 70px);
+            grid-template-rows: repeat(2, 70px);
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-control {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 24px;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-control:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        #btnUp { grid-column: 2; grid-row: 1; }
+        #btnLeft { grid-column: 1; grid-row: 2; }
+        #btnDown { grid-column: 2; grid-row: 2; }
+        #btnRight { grid-column: 3; grid-row: 2; }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .game-over-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 90%;
+        }
+
+        .game-over-content h2 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .game-over-content p {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #btnRestart {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        #btnRestart:active {
+            transform: scale(0.95);
+        }
+
+        .hearts {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Jogo da Cobrinha</h1>
+        <p class="subtitle">Feito com carinho para você</p>
+        
+        <div class="game-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            
+            <div class="score-board">
+                <div class="score-item">
+                    <div>Pontos</div>
+                    <div id="score">0</div>
+                </div>
+                <div class="score-item">
+                    <div>Recorde</div>
+                    <div id="highScore">0</div>
+                </div>
+            </div>
+
+            <div class="hearts">💕 💕 💕</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-control" id="btnUp">↑</button>
+            <button class="btn-control" id="btnLeft">←</button>
+            <button class="btn-control" id="btnDown">↓</button>
+            <button class="btn-control" id="btnRight">→</button>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <h2>Fim de Jogo!</h2>
+            <p>Pontuação: <span id="finalScore">0</span></p>
+            <p id="message"></p>
+            <button id="btnRestart">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== COLOQUE AQUI OS LINKS DAS IMAGENS =====
+        const HER_IMAGE_URL = 'ela.PNG';  // Cole aqui o link da foto dela
+        const HIS_IMAGE_URL = 'eu.PNG';   // Cole aqui o link da sua foto
+        // =============================================
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Ajustar tamanho do canvas para mobile
+        const size = Math.min(window.innerWidth - 40, 400);
+        canvas.width = size;
+        canvas.height = size;
+        
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        
+        let snake = [{x: 10, y: 10}];
+        let food = {x: 15, y: 15};
+        let dx = 0;
+        let dy = 0;
+        let score = 0;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let gameLoop;
+        let gameSpeed = 150;
+        
+        // Carregar imagens
+        const herImage = new Image();
+        const hisImage = new Image();
+        let imagesLoaded = 0;
+        
+        herImage.onload = () => {
+            imagesLoaded++;
+            if (imagesLoaded === 2) startGame();
+        };
+        
+        hisImage.onload = () => {
+            imagesLoaded++;
+            if (imagesLoaded === 2) startGame();
+        };
+        
+        herImage.onerror = () => {
+            console.log('Erro ao carregar foto dela, usando emoji padrão');
+            imagesLoaded++;
+            if (imagesLoaded === 2) startGame();
+        };
+        
+        hisImage.onerror = () => {
+            console.log('Erro ao carregar sua foto, usando emoji padrão');
+            imagesLoaded++;
+            if (imagesLoaded === 2) startGame();
+        };
+        
+        herImage.src = HER_IMAGE_URL;
+        hisImage.src = HIS_IMAGE_URL;
+        
+        document.getElementById('highScore').textContent = highScore;
+        
+        const messages = [
+            "Você é incrível! 💕",
+            "Que reflexos! 😍",
+            "Está indo muito bem! 🌟",
+            "Continue assim! 💖",
+            "Você é demais! ✨",
+            "Impressionante! 🎉"
+        ];
+        
+        function startGame() {
+            drawGame();
+            gameLoop = setInterval(gameStep, gameSpeed);
+        }
+        
+        function drawGame() {
+            // Limpar canvas
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Desenhar grade sutil
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < tileCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+            
+            // Desenhar comida (sua foto ou coração)
+            if (hisImage.complete && hisImage.naturalWidth > 0) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(
+                    food.x * gridSize + gridSize / 2,
+                    food.y * gridSize + gridSize / 2,
+                    gridSize / 2 - 1,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.closePath();
+                ctx.clip();
+                ctx.drawImage(
+                    hisImage,
+                    food.x * gridSize,
+                    food.y * gridSize,
+                    gridSize,
+                    gridSize
+                );
+                ctx.restore();
+                
+                // Borda ao redor da comida
+                ctx.strokeStyle = '#ff6b9d';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(
+                    food.x * gridSize + gridSize / 2,
+                    food.y * gridSize + gridSize / 2,
+                    gridSize / 2 - 1,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = '#ff6b9d';
+                ctx.font = `${gridSize}px Arial`;
+                ctx.fillText('💕', food.x * gridSize, (food.y + 1) * gridSize - 2);
+            }
+            
+            // Desenhar cobra
+            snake.forEach((segment, index) => {
+                if (index === 0 && herImage.complete && herImage.naturalWidth > 0) {
+                    // Cabeça com foto dela
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(
+                        segment.x * gridSize + gridSize / 2,
+                        segment.y * gridSize + gridSize / 2,
+                        gridSize / 2 - 1,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.closePath();
+                    ctx.clip();
+                    ctx.drawImage(
+                        herImage,
+                        segment.x * gridSize,
+                        segment.y * gridSize,
+                        gridSize,
+                        gridSize
+                    );
+                    ctx.restore();
+                    
+                    // Borda ao redor da cabeça
+                    ctx.strokeStyle = '#667eea';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(
+                        segment.x * gridSize + gridSize / 2,
+                        segment.y * gridSize + gridSize / 2,
+                        gridSize / 2 - 1,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.stroke();
+                } else {
+                    // Corpo da cobra
+                    const gradient = ctx.createLinearGradient(
+                        segment.x * gridSize, segment.y * gridSize,
+                        segment.x * gridSize + gridSize, segment.y * gridSize + gridSize
+                    );
+                    gradient.addColorStop(0, '#667eea');
+                    gradient.addColorStop(1, '#764ba2');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(
+                        segment.x * gridSize + gridSize / 2,
+                        segment.y * gridSize + gridSize / 2,
+                        gridSize / 2 - 1,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+            });
+        }
+        
+        function update() {
+            if (dx === 0 && dy === 0) return;
+            
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            
+            // Verificar colisão com paredes
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                endGame();
+                return;
+            }
+            
+            // Verificar colisão com o próprio corpo
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                endGame();
+                return;
+            }
+            
+            snake.unshift(head);
+            
+            // Verificar se comeu a comida
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                document.getElementById('score').textContent = score;
+                generateFood();
+                
+                // Aumentar velocidade gradualmente
+                if (score % 5 === 0 && gameSpeed > 80) {
+                    gameSpeed -= 10;
+                    clearInterval(gameLoop);
+                    gameLoop = setInterval(gameStep, gameSpeed);
+                }
+            } else {
+                snake.pop();
+            }
+        }
+        
+        function generateFood() {
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+            
+            // Garantir que a comida não apareça no corpo da cobra
+            if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
+                generateFood();
+            }
+        }
+        
+        function gameStep() {
+            update();
+            drawGame();
+        }
+        
+        function changeDirection(newDx, newDy) {
+            // Prevenir movimento oposto
+            if (dx === -newDx && newDx !== 0) return;
+            if (dy === -newDy && newDy !== 0) return;
+            
+            dx = newDx;
+            dy = newDy;
+        }
+        
+        function endGame() {
+            clearInterval(gameLoop);
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('snakeHighScore', highScore);
+                document.getElementById('highScore').textContent = highScore;
+            }
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('message').textContent = 
+                messages[Math.floor(Math.random() * messages.length)];
+            document.getElementById('gameOver').style.display = 'flex';
+        }
+        
+        function restartGame() {
+            snake = [{x: 10, y: 10}];
+            dx = 0;
+            dy = 0;
+            score = 0;
+            gameSpeed = 150;
+            document.getElementById('score').textContent = score;
+            generateFood();
+            document.getElementById('gameOver').style.display = 'none';
+            clearInterval(gameLoop);
+            gameLoop = setInterval(gameStep, gameSpeed);
+            drawGame();
+        }
+        
+        // Controles de toque
+        document.getElementById('btnUp').addEventListener('click', () => changeDirection(0, -1));
+        document.getElementById('btnDown').addEventListener('click', () => changeDirection(0, 1));
+        document.getElementById('btnLeft').addEventListener('click', () => changeDirection(-1, 0));
+        document.getElementById('btnRight').addEventListener('click', () => changeDirection(1, 0));
+        document.getElementById('btnRestart').addEventListener('click', restartGame);
+        
+        // Controles por teclado (para desktop)
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    e.preventDefault();
+                    changeDirection(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    e.preventDefault();
+                    changeDirection(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    e.preventDefault();
+                    changeDirection(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    e.preventDefault();
+                    changeDirection(1, 0);
+                    break;
+            }
+        });
+        
+        // Controles por swipe
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > 0) {
+                    changeDirection(1, 0);
+                } else {
+                    changeDirection(-1, 0);
+                }
+            } else {
+                if (diffY > 0) {
+                    changeDirection(0, 1);
+                } else {
+                    changeDirection(0, -1);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
