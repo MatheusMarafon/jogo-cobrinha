@@ -239,11 +239,8 @@ function drawGame() {
     ctx.fillStyle = '#f8f9fa';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // === ALTERAÇÃO 1: Grade mais escura ===
-    // (O valor antigo era '#e9ecef')
+    // Grade mais escura
     ctx.strokeStyle = '#ddd'; 
-    // ======================================
-
     ctx.lineWidth = 0.5;
     for (let i = 0; i < tileCount; i++) {
         ctx.beginPath();
@@ -349,32 +346,40 @@ document.addEventListener('keydown', (e) => {
 let touchStartX = 0;
 let touchStartY = 0;
 
+// === A CORREÇÃO ESTÁ AQUI ===
+// Trocamos 'document.body' por 'window' para pegar a tela inteira
+// Adicionamos 'e.preventDefault()' e '{ passive: false }' para parar a rolagem
 
-// === ALTERAÇÃO 2: Swipe na tela inteira ===
-// Trocamos 'canvas.addEventListener' por 'document.body.addEventListener'
-// E adicionamos o filtro para ignorar toques no INPUT
-document.body.addEventListener('touchstart', (e) => {
+window.addEventListener('touchstart', (e) => {
     if (e.target.tagName === 'INPUT') {
         return;
     }
+    // Impede o navegador de rolar a página
+    e.preventDefault(); 
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-});
+}, { passive: false }); // 'passive: false' é OBRIGATÓRIO para o e.preventDefault() funcionar
 
-document.body.addEventListener('touchend', (e) => {
+window.addEventListener('touchend', (e) => {
     if (e.target.tagName === 'INPUT') {
         return;
     }
-    
+    e.preventDefault(); 
+
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
     
     const diffX = touchEndX - touchStartX;
     const diffY = touchEndY - touchStartY;
+
+    // Ignora "toques" (cliques) e só processa "swipes" (movimentos)
+    if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+        return;
+    }
     
     if (Math.abs(diffX) > Math.abs(diffY)) {
         changeDirection(diffX > 0 ? 1 : -1, 0);
     } else {
         changeDirection(0, diffY > 0 ? 1 : -1);
     }
-});
+}, { passive: false });
