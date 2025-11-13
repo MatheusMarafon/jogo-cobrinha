@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Cobrinha</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="overlay" id="startScreen">
+        <div class="overlay-content">
+            <h2>Bem-vindo!</h2>
+            <p>Digite seu nome para o ranking:</p>
+            <input type="text" id="playerNameInput" placeholder="Seu nome" maxlength="15">
+            <button id="startGameBtn">Jogar!</button>
+            <p class="loading-text" id="loadingText">Carregando imagens...</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Jogo da Cobrinha</h1>
+        <p class="subtitle">Feito com carinho para você</p>
+        
+        <div class="game-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            
+            <div class="score-board">
+                <div class="score-item">
+                    <div>Pontos</div>
+                    <div id="score">0</div>
+                </div>
+                <div class="score-item">
+                    <div>Recorde</div>
+                    <div id="highScore">0</div>
+                </div>
+            </div>
+
+            <div class="hearts">💕 💕 💕</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-control" id="btnUp">↑</button>
+            <button class="btn-control" id="btnLeft">←</button>
+            <button class="btn-control" id="btnDown">↓</button>
+            <button class="btn-control" id="btnRight">→</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="gameOver">
+        <div class="overlay-content">
+            <h2>Fim de Jogo!</h2>
+            <p>Pontuação: <span id="finalScore">0</span></p>
+            <p id="message"></p>
+            
+            <h3 class="ranking-title">Ranking (Top 10)</h3>
+            <ol id="rankingList"></ol>
+
+            <button id="btnRestart">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
