@@ -40,6 +40,9 @@ h1 {
     padding: 20px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     display: inline-block;
+    
+    /* Ajuda o canvas a se ajustar corretamente */
+    max-width: 100%; 
 }
 
 #gameCanvas {
@@ -48,6 +51,11 @@ h1 {
     background: #f8f9fa;
     display: block;
     touch-action: none;
+    
+    /* === CORREÇÃO DE RESPONSIVIDADE === */
+    max-width: 100%;
+    height: auto;
+    /* ================================== */
 }
 
 .score-board {

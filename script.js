@@ -17,11 +17,16 @@ const HIS_IMAGE_URL = 'eu.PNG';
 const RANKING_KEY = 'snakeRankingV1'; // Chave para salvar no localStorage
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const size = Math.min(window.innerWidth - 40, 400);
+
+// === CORREÇÃO DE RESPONSIVIDADE ===
+// Define um tamanho fixo de 400x400. O CSS vai redimensionar.
+const size = 400;
+// ==================================
+
 canvas.width = size;
 canvas.height = size;
 const gridSize = 20;
-const tileCount = canvas.width / gridSize;
+const tileCount = canvas.width / gridSize; // Isso agora será sempre 20
 
 // ===== ELEMENTOS DA UI =====
 const startScreen = document.getElementById('startScreen');
@@ -325,12 +330,10 @@ document.getElementById('btnRight').addEventListener('click', () => changeDirect
 document.getElementById('btnRestart').addEventListener('click', restartGame);
 
 document.addEventListener('keydown', (e) => {
-    // *** A CORREÇÃO ESTÁ AQUI ***
     // Se o usuário estiver digitando em um input, não acione os controles do jogo
     if (e.target.tagName === 'INPUT') {
         return;
     }
-    // **************************
 
     switch(e.key) {
         case 'ArrowUp': case 'w': case 'W': e.preventDefault(); changeDirection(0, -1); break;
