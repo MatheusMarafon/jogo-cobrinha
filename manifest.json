@@ -1,0 +1,21 @@
+{
+  "name": "Jogo da Cobrinha",
+  "short_name": "Cobrinha",
+  "description": "Um jogo de cobrinha especial.",
+  "start_url": ".",
+  "display": "fullscreen",
+  "background_color": "#667eea",
+  "theme_color": "#764ba2",
+  "icons": [
+    {
+      "src": "logo.PNG",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo.PNG",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

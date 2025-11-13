@@ -1,3 +1,18 @@
+// === CÓDIGO DO PWA (APP) ===
+// Registra o Service Worker (modo offline)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => {
+        console.log('Service Worker registrado!', reg);
+      })
+      .catch(err => {
+        console.log('Erro ao registrar Service Worker:', err);
+      });
+  });
+}
+// ============================
+
 // ===== DETECÇÃO DE TOQUE =====
 window.addEventListener('load', () => {
     const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -46,7 +61,7 @@ let gameLoop;
 let gameSpeed = 150;
 let isChangingDirection = false;
 let currentPlayer = "Anônimo";
-let isGameRunning = false; // <<< NOVO: Controla o estado do jogo
+let isGameRunning = false; // Controla o estado do jogo
 
 // ===== MENSAGENS DE FIM DE JOGO =====
 const messages = [
@@ -89,13 +104,13 @@ startGameBtn.addEventListener('click', () => {
 });
 
 function startGame() {
-    isGameRunning = true; // <<< NOVO: O jogo começou
+    isGameRunning = true; // O jogo começou
     drawGame();
     gameLoop = setInterval(gameStep, gameSpeed);
 }
 
 function endGame() {
-    isGameRunning = false; // <<< NOVO: O jogo parou
+    isGameRunning = false; // O jogo parou
     clearInterval(gameLoop);
     
     updateRanking(currentPlayer, score);
@@ -121,7 +136,7 @@ function restartGame() {
     gameOverScreen.style.display = 'none';
     clearInterval(gameLoop);
     
-    isGameRunning = true; // <<< NOVO: O jogo recomeçou
+    isGameRunning = true; // O jogo recomeçou
     gameLoop = setInterval(gameStep, gameSpeed);
     drawGame();
 }
@@ -329,7 +344,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// === A CORREÇÃO FINAL PARA O SWIPE ===
+// Controles de swipe (mobile)
 let touchStartX = 0;
 let touchStartY = 0;
 
