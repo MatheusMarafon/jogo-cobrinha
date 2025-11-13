@@ -18,10 +18,8 @@ const RANKING_KEY = 'snakeRankingV1'; // Chave para salvar no localStorage
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// === CORREÇÃO DE RESPONSIVIDADE ===
 // Define um tamanho fixo de 400x400. O CSS vai redimensionar.
 const size = 400;
-// ==================================
 
 canvas.width = size;
 canvas.height = size;
@@ -241,7 +239,11 @@ function drawGame() {
     ctx.fillStyle = '#f8f9fa';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    ctx.strokeStyle = '#e9ecef';
+    // === ALTERAÇÃO 1: Grade mais escura ===
+    // (O valor antigo era '#e9ecef')
+    ctx.strokeStyle = '#ddd'; 
+    // ======================================
+
     ctx.lineWidth = 0.5;
     for (let i = 0; i < tileCount; i++) {
         ctx.beginPath();
@@ -343,17 +345,30 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Controles por swipe
 let touchStartX = 0;
 let touchStartY = 0;
 
-canvas.addEventListener('touchstart', (e) => {
+
+// === ALTERAÇÃO 2: Swipe na tela inteira ===
+// Trocamos 'canvas.addEventListener' por 'document.body.addEventListener'
+// E adicionamos o filtro para ignorar toques no INPUT
+document.body.addEventListener('touchstart', (e) => {
+    if (e.target.tagName === 'INPUT') {
+        return;
+    }
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
 });
 
-canvas.addEventListener('touchend', (e) => {
+document.body.addEventListener('touchend', (e) => {
+    if (e.target.tagName === 'INPUT') {
+        return;
+    }
+    
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
+    
     const diffX = touchEndX - touchStartX;
     const diffY = touchEndY - touchStartY;
     
