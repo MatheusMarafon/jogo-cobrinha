@@ -46,6 +46,7 @@ let gameLoop;
 let gameSpeed = 150;
 let isChangingDirection = false;
 let currentPlayer = "Anônimo";
+let isGameRunning = false; // <<< NOVO: Controla o estado do jogo
 
 // ===== MENSAGENS DE FIM DE JOGO =====
 const messages = [
@@ -88,33 +89,27 @@ startGameBtn.addEventListener('click', () => {
 });
 
 function startGame() {
+    isGameRunning = true; // <<< NOVO: O jogo começou
     drawGame();
     gameLoop = setInterval(gameStep, gameSpeed);
 }
 
 function endGame() {
+    isGameRunning = false; // <<< NOVO: O jogo parou
     clearInterval(gameLoop);
     
-    // 1. Salva a pontuação no ranking
     updateRanking(currentPlayer, score);
-    
-    // 2. Atualiza o display de "Recorde" principal
     loadInitialHighScore();
-    
-    // 3. Mostra o ranking na tela de Game Over
     displayRanking();
     
-    // 4. Preenche os dados da tela de Game Over
     document.getElementById('finalScore').textContent = score;
     document.getElementById('message').textContent = 
         messages[Math.floor(Math.random() * messages.length)];
     
-    // 5. Mostra a tela de Game Over
     gameOverScreen.style.display = 'flex';
 }
 
 function restartGame() {
-    // Reseta as variáveis do jogo
     snake = [{x: 10, y: 10}];
     dx = 0;
     dy = 0;
@@ -123,22 +118,21 @@ function restartGame() {
     scoreDisplay.textContent = score;
     generateFood();
     
-    // Esconde a tela de Game Over e reinicia o loop
     gameOverScreen.style.display = 'none';
     clearInterval(gameLoop);
+    
+    isGameRunning = true; // <<< NOVO: O jogo recomeçou
     gameLoop = setInterval(gameStep, gameSpeed);
     drawGame();
 }
 
 // ===== FUNÇÕES DO RANKING (localStorage) =====
 
-// Pega o ranking salvo (ou um array vazio)
 function getRanking() {
     const storedRanking = localStorage.getItem(RANKING_KEY);
     return storedRanking ? JSON.parse(storedRanking) : [];
 }
 
-// Carrega o recorde principal (o maior de todos)
 function loadInitialHighScore() {
     const ranking = getRanking();
     if (ranking.length > 0) {
@@ -148,24 +142,16 @@ function loadInitialHighScore() {
     }
 }
 
-// Adiciona o novo placar, ordena e salva
 function updateRanking(name, newScore) {
     if (newScore === 0) return; // Não salva placar 0
     
     const ranking = getRanking();
     ranking.push({ name: name, score: newScore });
-    
-    // Ordena do maior para o menor
     ranking.sort((a, b) => b.score - a.score);
-    
-    // Pega só os 10 melhores
     const top10 = ranking.slice(0, 10);
-    
-    // Salva de volta no localStorage
     localStorage.setItem(RANKING_KEY, JSON.stringify(top10));
 }
 
-// Mostra o ranking na tela de Game Over
 function displayRanking() {
     const ranking = getRanking();
     rankingList.innerHTML = ""; // Limpa a lista antiga
@@ -322,14 +308,15 @@ function changeDirection(newDx, newDy) {
     dy = newDy;
 }
 
+// Controles de botão (desktop)
 document.getElementById('btnUp').addEventListener('click', () => changeDirection(0, -1));
 document.getElementById('btnDown').addEventListener('click', () => changeDirection(0, 1));
 document.getElementById('btnLeft').addEventListener('click', () => changeDirection(-1, 0));
 document.getElementById('btnRight').addEventListener('click', () => changeDirection(1, 0));
 document.getElementById('btnRestart').addEventListener('click', restartGame);
 
+// Controles de teclado (desktop)
 document.addEventListener('keydown', (e) => {
-    // Se o usuário estiver digitando em um input, não acione os controles do jogo
     if (e.target.tagName === 'INPUT') {
         return;
     }
@@ -342,29 +329,29 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Controles por swipe
+// === A CORREÇÃO FINAL PARA O SWIPE ===
 let touchStartX = 0;
 let touchStartY = 0;
 
-// === A CORREÇÃO ESTÁ AQUI ===
-// Trocamos 'document.body' por 'window' para pegar a tela inteira
-// Adicionamos 'e.preventDefault()' e '{ passive: false }' para parar a rolagem
-
-window.addEventListener('touchstart', (e) => {
-    if (e.target.tagName === 'INPUT') {
+// Usamos 'document.documentElement' (a tag <html>) para pegar a tela inteira
+document.documentElement.addEventListener('touchstart', (e) => {
+    // Se o jogo não estiver rodando OU se o toque for em um input/botão, não faça nada
+    if (!isGameRunning || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
         return;
     }
-    // Impede o navegador de rolar a página
+    
+    // Impede a rolagem DA JANELA apenas se o jogo estiver rodando
     e.preventDefault(); 
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-}, { passive: false }); // 'passive: false' é OBRIGATÓRIO para o e.preventDefault() funcionar
+}, { passive: false }); // 'passive: false' é OBRIGATÓRIO
 
-window.addEventListener('touchend', (e) => {
-    if (e.target.tagName === 'INPUT') {
+document.documentElement.addEventListener('touchend', (e) => {
+    // Se o jogo não estiver rodando OU se o toque for em um input/botão, não faça nada
+    if (!isGameRunning || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
         return;
     }
-    e.preventDefault(); 
+    e.preventDefault();
 
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
@@ -373,7 +360,8 @@ window.addEventListener('touchend', (e) => {
     const diffY = touchEndY - touchStartY;
 
     // Ignora "toques" (cliques) e só processa "swipes" (movimentos)
-    if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+    const swipeThreshold = 30; // Mínimo de 30px de movimento para contar como swipe
+    if (Math.abs(diffX) < swipeThreshold && Math.abs(diffY) < swipeThreshold) {
         return;
     }
     
